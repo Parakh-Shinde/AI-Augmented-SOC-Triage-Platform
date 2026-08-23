@@ -1,0 +1,317 @@
+<form version="1.1" theme="dark" stylesheet="ai_soc_dark.css">
+  <label>AI-Powered Security Operations Center — Live Threat Monitoring and Incident Response</label>
+  <description>Real-time SOC command center for detection, investigation, AI triage, MITRE ATTACK coverage and response readiness across Windows, Linux, web and network telemetry.</description>
+  <fieldset submitButton="false" autoRun="true">
+    <input type="time" token="time_tok">
+      <label>Monitoring window</label>
+      <default>
+        <earliest>-15m</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+  </fieldset>
+
+  <row>
+    <panel>
+      <html>
+        <div class="soc-hero">
+          <div class="soc-brand">
+            <div class="soc-eyebrow">SECURITY OPERATIONS / LIVE</div>
+            <h1>PARAKH <span>AI-SOC</span> COMMAND CENTER</h1>
+            <p>Unified threat detection, AI triage and incident response across the enterprise attack surface</p>
+          </div>
+          <div class="soc-status">
+            <span class="pulse-dot"></span>
+            <div><strong>MONITORING ACTIVE</strong><small>REAL-TIME TELEMETRY</small></div>
+          </div>
+        </div>
+        <div class="soc-strip">
+          <span>WINDOWS + SYSMON</span><span>LINUX AUTH</span><span>DVWA + APACHE</span><span>SURICATA IDS</span><span>AI TRIAGE</span><span>SOAR READY</span>
+        </div>
+      </html>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <single>
+        <title>Events in selected window</title>
+        <search>
+          <query>(index=windows OR index=linux OR index=web OR index=suricata OR index=ai_triage OR index=security_alerts) | stats count</query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+          <refresh>10s</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x53a051","0xf8be34","0xdc4e41"]</option>
+        <option name="rangeValues">[100,1000]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>High / critical AI incidents</title>
+        <search>
+          <query>index=ai_triage event_type="ai_triage_result" severity IN (high,critical) | stats count</query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+          <refresh>10s</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x53a051","0xf1813f","0xdc4e41"]</option>
+        <option name="rangeValues">[1,5]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Active telemetry sources</title>
+        <search>
+          <query>(index=windows OR index=linux OR index=web OR index=suricata OR index=ai_triage OR index=security_alerts) | stats dc(index) as sources</query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+          <refresh>10s</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0xdc4e41","0xf8be34","0x53a051"]</option>
+        <option name="rangeValues">[2,4]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Failed authentication attempts</title>
+        <search>
+          <query>((index=windows source="WinEventLog:Security" EventCode=4625) OR (index=linux ("Failed password" OR "authentication failure"))) | stats count</query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+          <refresh>10s</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x53a051","0xf8be34","0xdc4e41"]</option>
+        <option name="rangeValues">[5,20]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Suricata IDS alerts</title>
+        <search>
+          <query>index=suricata (event_type=alert OR alert.signature=*) | stats count</query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+          <refresh>10s</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x53a051","0xf1813f","0xdc4e41"]</option>
+        <option name="rangeValues">[1,10]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <chart>
+        <title>Security detections over time</title>
+        <search>
+          <query><![CDATA[
+(index=suricata OR index=security_alerts OR index=ai_triage OR (index=windows (EventCode=4625 OR "-EncodedCommand" OR "certutil.exe")) OR (index=linux ("Failed password" OR "authentication failure")) OR (index=web ("%27" OR "<script" OR "%3Cscript" OR "../")))
+| eval detection_source=case(index="suricata","IDS",index="windows","Endpoint",index="linux","Identity",index="web","Web",index="ai_triage","AI triage",true(),"Detection")
+| timechart span=1m count by detection_source limit=8 useother=f
+          ]]></query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+          <refresh>10s</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.legend.placement">bottom</option>
+      </chart>
+    </panel>
+    <panel>
+      <table>
+        <title>Sensor health and last-seen status</title>
+        <search>
+          <query><![CDATA[
+(index=windows OR index=linux OR index=web OR index=suricata OR index=ai_triage OR index=security_alerts)
+| stats count latest(_time) as last_seen by index
+| eval age_seconds=now()-last_seen
+| eval status=case(age_seconds<=300,"ONLINE",age_seconds<=900,"DEGRADED",true(),"OFFLINE")
+| convert ctime(last_seen)
+| rename index as sensor count as events
+| table sensor status events last_seen
+| sort sensor
+          ]]></query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+          <refresh>15s</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="count">10</option>
+        <option name="drilldown">none</option>
+        <format type="color" field="status">
+          <colorPalette type="map">{"ONLINE":#53A051,"DEGRADED":#F8BE34,"OFFLINE":#DC4E41}</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <map>
+        <title>Public source-IP geolocation</title>
+        <search>
+          <query><![CDATA[
+(index=windows OR index=linux OR index=web OR index=suricata OR index=security_alerts)
+| rex field=_raw "from\s+(?<ssh_ip>\d+\.\d+\.\d+\.\d+)"
+| rex field=_raw "^(?<web_ip>\d+\.\d+\.\d+\.\d+)"
+| rex field=_raw "<Data[^>]+Name=.IpAddress.[^>]*>(?<windows_ip>[^<]+)"
+| eval source_ip=coalesce(src_ip,source_ip,clientip,ssh_ip,web_ip,windows_ip)
+| where isnotnull(source_ip)
+| where NOT cidrmatch("10.0.0.0/8",source_ip) AND NOT cidrmatch("172.16.0.0/12",source_ip) AND NOT cidrmatch("192.168.0.0/16",source_ip) AND NOT cidrmatch("127.0.0.0/8",source_ip)
+| iplocation source_ip
+| where isnotnull(lat) AND isnotnull(lon)
+| geostats latfield=lat longfield=lon count by index
+          ]]></query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+          <refresh>15s</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="mapping.map.center">(20,0)</option>
+        <option name="mapping.map.zoom">1</option>
+        <option name="mapping.type">marker</option>
+      </map>
+    </panel>
+    <panel>
+      <table>
+        <title>Internal lab sources — private IPs cannot be geolocated</title>
+        <search>
+          <query><![CDATA[
+(index=windows OR index=linux OR index=web OR index=suricata OR index=security_alerts)
+| rex field=_raw "from\s+(?<ssh_ip>\d+\.\d+\.\d+\.\d+)"
+| rex field=_raw "^(?<web_ip>\d+\.\d+\.\d+\.\d+)"
+| rex field=_raw "<Data[^>]+Name=.IpAddress.[^>]*>(?<windows_ip>[^<]+)"
+| eval source_ip=coalesce(src_ip,source_ip,clientip,ssh_ip,web_ip,windows_ip)
+| where cidrmatch("10.0.0.0/8",source_ip) OR cidrmatch("172.16.0.0/12",source_ip) OR cidrmatch("192.168.0.0/16",source_ip) OR cidrmatch("127.0.0.0/8",source_ip)
+| eval asset=case(source_ip="10.0.10.129","Kali attacker",source_ip="10.0.10.20","Web server",source_ip="10.0.10.10","SOC server",source_ip="127.0.0.1" OR source_ip="::1","Local endpoint",true(),"Internal asset")
+| stats count latest(_time) as last_seen values(index) as indexes by source_ip asset
+| convert ctime(last_seen)
+| sort 0 - count
+          ]]></query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+          <refresh>10s</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="count">10</option>
+        <option name="drilldown">none</option>
+      </table>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <table>
+        <title>Live event stream</title>
+        <search>
+          <query><![CDATA[
+(index=windows OR index=linux OR index=web OR index=suricata OR index=ai_triage OR index=security_alerts)
+| eval telemetry=case(index="windows","WINDOWS / SYSMON",index="linux","LINUX AUTH",index="web","DVWA / APACHE",index="suricata","SURICATA IDS",index="ai_triage","AI TRIAGE",true(),upper(index))
+| eval event_preview=substr(replace(_raw,"[\r\n]+"," "),1,220)
+| table _time telemetry host source sourcetype event_preview
+| sort 0 - _time
+| head 100
+          ]]></query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+          <refresh>5s</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="count">20</option>
+        <option name="drilldown">row</option>
+        <option name="rowNumbers">true</option>
+        <format type="color" field="telemetry">
+          <colorPalette type="map">{"WINDOWS / SYSMON":#3C78D8,"LINUX AUTH":#6AA84F,"DVWA / APACHE":#E69138,"SURICATA IDS":#CC0000,"AI TRIAGE":#674EA7}</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <chart>
+        <title>Events by telemetry source</title>
+        <search>
+          <query>(index=windows OR index=linux OR index=web OR index=suricata OR index=ai_triage OR index=security_alerts) | timechart span=1m count by index limit=10 useother=f</query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+          <refresh>10s</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.legend.placement">bottom</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>Top source IPs</title>
+        <search>
+          <query><![CDATA[
+(index=windows OR index=linux OR index=web OR index=suricata OR index=security_alerts)
+| rex field=_raw "from\s+(?<ssh_ip>\d+\.\d+\.\d+\.\d+)"
+| rex field=_raw "^(?<web_ip>\d+\.\d+\.\d+\.\d+)"
+| rex field=_raw "<Data[^>]+Name=.IpAddress.[^>]*>(?<windows_ip>[^<]+)"
+| eval source_ip=coalesce(src_ip,source_ip,clientip,ssh_ip,web_ip,windows_ip)
+| where isnotnull(source_ip) AND source_ip!="-"
+| top limit=10 source_ip
+          ]]></query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+          <refresh>10s</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.legend.placement">none</option>
+      </chart>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <table>
+        <title>Authentication activity — Windows and Linux</title>
+        <search>
+          <query><![CDATA[
+(index=windows source="WinEventLog:Security") OR (index=linux ("Failed password" OR "Accepted password" OR "authentication failure"))
+| rex field=_raw "<EventID[^>]*>(?<event_id>\d+)</EventID>"
+| rex field=_raw "<Data[^>]+Name=.IpAddress.[^>]*>(?<windows_ip>[^<]+)"
+| rex field=_raw "<Data[^>]+Name=.TargetUserName.[^>]*>(?<windows_user>[^<]+)"
+| rex field=_raw "(?:(?:Failed|Accepted) password for (?:invalid user )?)(?<linux_user>\S+) from (?<linux_ip>\d+\.\d+\.\d+\.\d+)"
+| eval source_ip=coalesce(windows_ip,linux_ip), user=coalesce(windows_user,linux_user)
+| eval result=case(event_id="4624","SUCCESS",event_id="4625","FAILURE",match(_raw,"Accepted password"),"SUCCESS",true(),"FAILURE")
+| table _time host user source_ip result source
+| sort 0 - _time
+| head 100
+          ]]></query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+          <refresh>10s</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="count">20</option>
+        <format type="color" field="result">
+          <colorPalette type="map">{"SUCCESS":#53A051,"FAILURE":#DC4E41}</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+</form>
