@@ -22,9 +22,9 @@ The design follows three principles:
 
 ## 🎬 Live Project Demo
 
- https://github.com/Parakh-Shinde/AI-Augmented-SOC-Triage-Platform/issues/1#issue-5249552423
+https://github.com/user-attachments/assets/db690c1e-b840-49db-be6e-78d89b68afa4
 
-> End-to-end demonstration of Splunk detection, local Ollama triage, MITRE ATT&CK enrichment, YARA analysis and automated pipeline processing.
+ End-to-end demonstration of Splunk detection, local Ollama triage, MITRE ATT&CK enrichment, YARA analysis and automated pipeline processing.
 
 ## Architecture
 
