@@ -20,6 +20,14 @@ The design follows three principles:
 - **Human approval before containment:** response actions remain analyst-controlled.
 - **Local-first AI:** Ollama processes alerts locally without requiring a third-party AI API.
 
+## 🎬 Project Demo
+
+See the complete detection-to-response workflow:
+
+[▶ Watch the Full AI-SOC Animated Demo](https://github.com/Parakh-Shinde/AI-Augmented-SOC-Triage-Platform/releases/download/v1.0.0/AI-SOC-Animated-Project-Demo.mp4)
+
+> Demonstrates Splunk monitoring, local Ollama AI triage, MITRE ATT&CK enrichment, YARA analysis and analyst-controlled response.
+
 ## Architecture
 
 ![AI-Augmented SOC Triage Platform Architecture](docs/architecture/ai-soc-architecture.svg)
