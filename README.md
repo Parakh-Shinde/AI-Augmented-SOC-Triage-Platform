@@ -22,6 +22,11 @@ The design follows three principles:
 
 ## Architecture
 
+![AI-Augmented SOC Triage Platform Architecture](docs/architecture/ai-soc-architecture.svg)
+
+> The platform keeps Ollama local, separates detection from AI enrichment, and requires analyst authorization before containment actions.
+
+
 ```mermaid
 flowchart TD
     A[Windows endpoint<br/>Security, Defender, Sysmon] --> S[Splunk Enterprise]
