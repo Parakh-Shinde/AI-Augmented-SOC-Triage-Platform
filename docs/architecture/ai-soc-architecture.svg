@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1050" viewBox="0 0 1600 1050" role="img" aria-labelledby="title desc">
+  <title id="title">AI-Augmented SOC Triage Platform Architecture</title>
+  <desc id="desc">Architecture showing Windows, Linux, Apache, Suricata and YARA telemetry flowing through Splunk, a Python detection pipeline, local Ollama AI triage, SQLite storage, a Streamlit analyst dashboard and approval-gated response.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#06111f"/><stop offset="1" stop-color="#0c2038"/></linearGradient>
+    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#123b63"/><stop offset="1" stop-color="#0a263f"/></linearGradient>
+    <linearGradient id="green" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#163d31"/><stop offset="1" stop-color="#0b241d"/></linearGradient>
+    <linearGradient id="purple" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#36205b"/><stop offset="1" stop-color="#1b1232"/></linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="7" stdDeviation="9" flood-color="#000" flood-opacity=".35"/></filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#36d7ff"/></marker>
+    <style>
+      .title{font:700 37px 'Segoe UI',Arial,sans-serif;fill:#fff}.subtitle{font:400 18px 'Segoe UI',Arial,sans-serif;fill:#9dc6df}
+      .lane{font:700 15px 'Segoe UI',Arial,sans-serif;letter-spacing:2px;fill:#36d7ff}.boxTitle{font:700 20px 'Segoe UI',Arial,sans-serif;fill:#fff}
+      .body{font:400 14px 'Segoe UI',Arial,sans-serif;fill:#b9d2e3}.small{font:400 12px 'Segoe UI',Arial,sans-serif;fill:#82a9c2}
+      .tag{font:700 11px 'Segoe UI',Arial,sans-serif;letter-spacing:1px;fill:#55f0ba}.line{stroke:#36d7ff;stroke-width:3;fill:none;marker-end:url(#arrow)}
+      .dash{stroke:#627e95;stroke-width:2;stroke-dasharray:8 7;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect width="1600" height="1050" fill="url(#bg)"/>
+  <g opacity=".16" stroke="#4ec9ff" stroke-width="1"><path d="M0 120H1600M0 260H1600M0 400H1600M0 540H1600M0 680H1600M0 820H1600M0 960H1600"/><path d="M160 0V1050M320 0V1050M480 0V1050M640 0V1050M800 0V1050M960 0V1050M1120 0V1050M1280 0V1050M1440 0V1050"/></g>
+
+  <text x="80" y="72" class="title">AI-Augmented SOC Triage Platform</text>
+  <text x="80" y="106" class="subtitle">Evidence-driven detection, local AI triage and analyst-controlled incident response</text>
+  <rect x="1280" y="46" width="240" height="55" rx="27" fill="#09281f" stroke="#24e6a4"/>
+  <circle cx="1314" cy="74" r="8" fill="#24e6a4"/><text x="1334" y="80" class="tag">HUMAN IN THE LOOP</text>
+
+  <text x="80" y="170" class="lane">01  SECURITY TELEMETRY</text>
+  <g filter="url(#shadow)">
+    <rect x="80" y="195" width="255" height="160" rx="16" fill="url(#blue)" stroke="#2876a7"/>
+    <text x="110" y="235" class="boxTitle">Windows Endpoint</text><text x="110" y="268" class="body">Security Event Log</text><text x="110" y="292" class="body">Sysmon process and network</text><text x="110" y="316" class="body">Microsoft Defender</text><text x="110" y="340" class="small">Host: windows-endpoint</text>
+    <rect x="365" y="195" width="255" height="160" rx="16" fill="url(#blue)" stroke="#2876a7"/>
+    <text x="395" y="235" class="boxTitle">Linux Web Server</text><text x="395" y="268" class="body">Authentication and syslog</text><text x="395" y="292" class="body">Apache access and error</text><text x="395" y="316" class="body">DVWA laboratory application</text><text x="395" y="340" class="small">Host: web-server</text>
+    <rect x="650" y="195" width="255" height="160" rx="16" fill="url(#blue)" stroke="#2876a7"/>
+    <text x="680" y="235" class="boxTitle">Suricata IDS</text><text x="680" y="268" class="body">Flow and protocol records</text><text x="680" y="292" class="body">HTTP, SSH and file events</text><text x="680" y="316" class="body">IDS alert signatures</text><text x="680" y="340" class="small">Source: eve.json</text>
+    <rect x="935" y="195" width="255" height="160" rx="16" fill="url(#purple)" stroke="#7d55b6"/>
+    <text x="965" y="235" class="boxTitle">YARA Service</text><text x="965" y="268" class="body">Controlled file scanning</text><text x="965" y="292" class="body">Rule match and SHA-256</text><text x="965" y="316" class="body">Quarantine and restoration</text><text x="965" y="340" class="small">Approval required</text>
+    <rect x="1220" y="195" width="300" height="160" rx="16" fill="#102d28" stroke="#28b989"/>
+    <text x="1250" y="235" class="boxTitle">Authorized Validation</text><text x="1250" y="268" class="body">Kali security-testing host</text><text x="1250" y="292" class="body">Bounded and non-destructive</text><text x="1250" y="316" class="body">SSH, DVWA and scan tests</text><text x="1250" y="340" class="small">Private VMware laboratory</text>
+  </g>
+
+  <text x="80" y="425" class="lane">02  COLLECTION AND SIEM</text>
+  <g filter="url(#shadow)">
+    <rect x="180" y="450" width="330" height="155" rx="18" fill="#0c2b45" stroke="#36d7ff" stroke-width="2"/>
+    <text x="215" y="493" class="boxTitle">Splunk Universal Forwarders</text><text x="215" y="528" class="body">Windows and Linux collection</text><text x="215" y="553" class="body">TLS-capable event transport</text><text x="215" y="578" class="small">Receiver: TCP 9997</text>
+    <rect x="635" y="430" width="410" height="195" rx="20" fill="#122d23" stroke="#24e6a4" stroke-width="2"/>
+    <text x="675" y="480" class="boxTitle">Splunk Enterprise SIEM</text><text x="675" y="515" class="body">Indexes: windows · linux · web · suricata</text><text x="675" y="542" class="body">ai_triage · security_alerts</text><text x="675" y="574" class="body">Search · field extraction · correlation</text><text x="675" y="600" class="small">Live dashboards and detection searches</text>
+    <rect x="1170" y="450" width="290" height="155" rx="18" fill="#0c2b45" stroke="#36d7ff" stroke-width="2"/>
+    <text x="1205" y="493" class="boxTitle">Splunk Dashboards</text><text x="1205" y="528" class="body">Source health and trends</text><text x="1205" y="553" class="body">Live event stream and map</text><text x="1205" y="578" class="small">Security operations view</text>
+  </g>
+
+  <path d="M335 355V450" class="line"/><path d="M492 355V450" class="line"/><path d="M777 355V430" class="line"/><path d="M1190 275H1220" class="dash"/><path d="M510 528H635" class="line"/><path d="M1045 528H1170" class="line"/><path d="M1062 355V405H840V430" class="dash"/>
+
+  <text x="80" y="690" class="lane">03  DETECTION, AI TRIAGE AND CASE MANAGEMENT</text>
+  <g filter="url(#shadow)">
+    <rect x="80" y="715" width="350" height="175" rx="18" fill="url(#blue)" stroke="#36d7ff" stroke-width="2"/>
+    <text x="115" y="758" class="boxTitle">Python Detection Pipeline</text><text x="115" y="792" class="body">Eight detector families</text><text x="115" y="817" class="body">Normalization and Pydantic validation</text><text x="115" y="842" class="body">Fingerprinting and deduplication</text><text x="115" y="867" class="small">systemd timer · flock · back-pressure</text>
+    <rect x="505" y="715" width="300" height="175" rx="18" fill="url(#purple)" stroke="#b178ff" stroke-width="2"/>
+    <text x="540" y="758" class="boxTitle">Local Ollama Triage</text><text x="540" y="792" class="body">Severity · verdict · confidence</text><text x="540" y="817" class="body">Evidence · false-positive indicators</text><text x="540" y="842" class="body">Recommended actions</text><text x="540" y="867" class="small">Model: qwen2.5:1.5b</text>
+    <rect x="880" y="715" width="290" height="175" rx="18" fill="#122d23" stroke="#24e6a4" stroke-width="2"/>
+    <text x="915" y="758" class="boxTitle">Streamlit Analyst UI</text><text x="915" y="792" class="body">Incident queue and raw evidence</text><text x="915" y="817" class="body">MITRE ATT&amp;CK mapping</text><text x="915" y="842" class="body">Notes and approval decision</text><text x="915" y="867" class="small">Human review required</text>
+    <rect x="1245" y="715" width="275" height="175" rx="18" fill="#102d28" stroke="#24e6a4" stroke-width="2"/>
+    <text x="1280" y="758" class="boxTitle">Controlled Response</text><text x="1280" y="792" class="body">YARA quarantine and restore</text><text x="1280" y="817" class="body">SOAR simulation</text><text x="1280" y="842" class="body">Proportionate and reversible</text><text x="1280" y="867" class="small">Analyst-approved only</text>
+  </g>
+  <path d="M840 625V670H255V715" class="line"/><path d="M430 802H505" class="line"/><path d="M805 802H880" class="line"/><path d="M1170 802H1245" class="line"/>
+
+  <rect x="390" y="940" width="345" height="70" rx="14" fill="#101d2b" stroke="#627e95"/>
+  <text x="425" y="970" class="boxTitle">SQLite Incident and Audit Store</text><text x="425" y="994" class="small">Incidents · decisions · deduplication · response history</text>
+  <path d="M255 890V975H390" class="dash"/><path d="M1025 890V975H735" class="dash"/>
+
+  <text x="1260" y="995" class="small">AI-SOC Architecture · Parakh Shinde · 2026</text>
+</svg>
