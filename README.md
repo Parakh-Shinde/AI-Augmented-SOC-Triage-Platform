@@ -1,209 +1,127 @@
 # AI-Augmented SOC Triage Platform
 
+> Local AI-assisted SOC triage lab that enriches Splunk alerts with evidence, MITRE ATT&CK context, analyst notes, and approval-gated response workflows.
+
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Splunk](https://img.shields.io/badge/SIEM-Splunk-000000?logo=splunk&logoColor=white)](https://www.splunk.com/)
 [![Ollama](https://img.shields.io/badge/AI-Ollama_Local-111111)](https://ollama.com/)
 [![MITRE ATT&CK](https://img.shields.io/badge/MITRE-ATT%26CK-E34F26)](https://attack.mitre.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-An end-to-end, AI-augmented Security Operations Center platform built in an isolated VMware laboratory. It collects endpoint, network, Linux and web telemetry in Splunk; runs automated detections; performs local Ollama-based triage; maps supported activity to MITRE ATT&CK; and provides analyst-controlled response workflows.
+## Overview
 
-> **Project status:** Core platform operational and validated in a private lab. Windows, Linux, Apache, Suricata, YARA, Splunk ingestion, automated triage and dashboard workflows have been tested. This project is aligned with selected ISO/IEC 27001 and NIST practices; it is not an ISO certification or a production security product.
+This project explores how a local language model can assist SOC alert triage without giving the model authority to take action. Splunk collects endpoint, Linux, web, and network telemetry. A Python pipeline retrieves alerts, normalizes evidence, asks a local Ollama model for triage assistance, applies deterministic MITRE ATT&CK fallback mapping, and stores the investigation record in SQLite.
 
-## Why this project exists
+Response remains analyst-controlled. YARA quarantine and SOAR actions are gated by explicit approval and audit records.
 
-Tier-1 SOC analysts often spend significant time collecting context, classifying alerts and documenting repetitive investigations. This project explores how a local language model can assist that process without giving the model unrestricted response authority.
+## Engineering Goals
 
-The design follows three principles:
-
-- **Evidence before conclusions:** AI output is supported by the original security event and deterministic mappings.
-- **Human approval before containment:** response actions remain analyst-controlled.
-- **Local-first AI:** Ollama processes alerts locally without requiring a third-party AI API.
-
-## 🎬 Live Project Demo
-
-https://github.com/user-attachments/assets/db690c1e-b840-49db-be6e-78d89b68afa4
-
- End-to-end demonstration of Splunk detection, local Ollama triage, MITRE ATT&CK enrichment, YARA analysis and automated pipeline processing.
+- Centralize lab telemetry from Windows, Linux, Apache, Suricata, and YARA sources.
+- Convert Splunk alerts into structured incident records.
+- Use local AI for severity, verdict, confidence, false-positive indicators, and next-step recommendations.
+- Preserve raw evidence and deterministic mappings so AI output is reviewable.
+- Keep containment and response actions approval-gated.
+- Demonstrate a practical SOC workflow from telemetry to investigation to audit trail.
 
 ## Architecture
 
 ![AI-Augmented SOC Triage Platform Architecture](docs/architecture/ai-soc-architecture.svg)
 
-> The platform keeps Ollama local, separates detection from AI enrichment, and requires analyst authorization before containment actions.
-
-
 ```mermaid
 flowchart TD
-    A[Windows endpoint<br/>Security, Defender, Sysmon] --> S[Splunk Enterprise]
-    B[Linux web server<br/>Auth, Syslog, Apache] --> S
-    C[Suricata IDS<br/>eve.json] --> S
-    S --> D[Python detection pipeline]
-    D --> O[Local Ollama triage]
-    O --> M[MITRE mapping and evidence]
-    M --> U[Streamlit SOC dashboard]
-    U --> H{Analyst decision}
-    H -->|Approved| R[YARA quarantine or SOAR simulation]
-    H -->|Rejected| X[Close or investigate]
-    D --> Q[(SQLite audit and incident records)]
+    W["Windows / Linux / Web / Suricata telemetry"] --> S["Splunk Enterprise"]
+    S --> P["Python collection pipeline"]
+    P --> A["Local Ollama triage"]
+    P --> M["Deterministic MITRE mapping"]
+    A --> Q["SQLite audit records"]
+    M --> Q
+    Q --> D["Streamlit SOC dashboard"]
+    D --> H["Analyst approval"]
+    H --> R["YARA or SOAR simulation"]
 ```
 
-### Lab components
+## Implemented Capabilities
 
-| Component | Role |
-|---|---|
-| Splunk Enterprise | Central SIEM, search, dashboards and correlation |
-| Splunk Universal Forwarder | Windows and Linux log forwarding |
-| Ollama | Local LLM inference for alert triage |
-| Streamlit | Analyst dashboard and investigation workflow |
-| Suricata | Network IDS and protocol telemetry |
-| Sysmon | Detailed Windows process and network telemetry |
-| YARA | Controlled file-signature scanning and quarantine workflow |
-| SQLite | Incident, triage, deduplication and audit records |
-| Kali Linux | Authorized, isolated security-validation host |
+| Area | Implementation |
+| --- | --- |
+| SIEM | Splunk Enterprise searches, dashboards, and alert collection |
+| AI triage | Local Ollama model with structured verdict, severity, confidence, and analyst guidance |
+| Evidence handling | Raw-event views, normalized fields, redaction helper, SQLite audit trail |
+| MITRE mapping | Deterministic fallback mapping when model output is incomplete or unsupported |
+| Detection sources | Windows Security, Sysmon, Defender, Linux auth/syslog, Apache, Suricata, YARA |
+| Response workflow | Analyst notes, approval decisions, YARA scan/quarantine/restore records, SOAR simulation |
+| Operations | Scheduled pipeline execution, `flock` protection, deferred processing for resource control |
 
-## Implemented capabilities
+## Validated Scenarios
 
-### Telemetry and detection
+| Data source | Scenario | Evidence-supported ATT&CK mapping |
+| --- | --- | --- |
+| Suricata | Network service discovery | `T1046` Network Service Discovery |
+| Linux authentication | SSH password guessing | `T1110.001` Password Guessing |
+| Apache / DVWA | Public-facing web exploitation attempts | `T1190` Exploit Public-Facing Application |
+| PowerShell / Sysmon | Encoded PowerShell execution | `T1059.001` PowerShell |
+| Sysmon process creation | LOLBin-style execution | `T1218` System Binary Proxy Execution |
+| YARA | File-signature match | Evidence-dependent; no automatic technique claim |
 
-- Windows Security, Sysmon and Microsoft Defender events
-- Linux authentication and system logs
-- Apache access and error logs
-- Suricata flow, protocol and IDS alert events
-- Failed Windows logons and Linux SSH authentication failures
-- Encoded PowerShell activity
-- Suspicious Windows LOLBin execution
-- DVWA SQL injection, XSS and path-traversal attempts
-- YARA signature detections
-- Generic Splunk security-alert ingestion
+Mappings are assigned only when supported by event evidence. Ordinary flow records are not presented as IDS detections unless an alert signature or validated correlation exists.
 
-### AI-assisted triage
-
-- Local Ollama model integration
-- Structured severity, verdict and confidence output
-- Evidence and false-positive indicators
-- Recommended investigation and response steps
-- Deterministic MITRE ATT&CK fallback when model output is incomplete
-- Sensitive-field redaction support
-- Processing limits to protect resource-constrained lab systems
-
-### Investigation and response
-
-- Prioritized incident queue
-- Raw-event and supporting-evidence views
-- MITRE ATT&CK display
-- Analyst notes and approval decisions
-- YARA scan, quarantine and restoration records
-- Approval-gated SOAR simulation
-- Event deduplication and audit history
-
-### Operations
-
-- Automatic dashboard startup with `systemd`
-- Scheduled Splunk-to-AI pipeline execution
-- `flock` protection against overlapping runs
-- Deferred alert processing for resource control
-- Live telemetry health and event-source monitoring
-
-## Repository structure
+## Repository Structure
 
 ```text
 AI-Augmented-SOC-Triage-Platform/
-├── app/                    # Detection, AI triage, dashboard and response code
-├── Rules/                  # YARA and laboratory detection rules
+├── app/                    # Detection, AI triage, dashboard, database, and response code
+├── Rules/                  # YARA laboratory rules
 ├── Splunk/                 # Splunk dashboard and supporting assets
 ├── docs/
 │   ├── architecture/       # Architecture diagrams
-│   ├── reports/            # Structured validation and incident reports
-│   └── screenshots/        # Redacted project evidence
+│   ├── reports/            # Validation and incident reports
+│   └── screenshots/        # Redacted evidence screenshots
 ├── requirements.txt
-├── .gitignore
 ├── LICENSE
 └── README.md
 ```
 
-> Folder names are case-sensitive on Linux. If your repository uses lowercase `rules/` and `splunk/`, update the tree above to match it.
+## Evidence and Reports
 
-## Detection coverage
+| Artifact | Purpose |
+| --- | --- |
+| `docs/architecture/ai-soc-architecture.svg` | System architecture and trust boundaries |
+| `docs/reports/INC-2026-08-25-AI-SOC-Security-Validation-Report.md` | End-to-end validation report |
+| `docs/reports/TEST-001_Network_Reconnaissance_Validation_Report.md` | Network reconnaissance validation example |
+| `docs/screenshots/` | Redacted screenshots for telemetry, triage, MITRE, dashboard, and pipeline evidence |
+| `Splunk/ai_soc_live_monitoring.xml` | Splunk dashboard source |
+| `Rules/lab_test.yar` | Controlled YARA validation rule |
 
-| Data source | Example scenario | Expected ATT&CK mapping |
-|---|---|---|
-| Suricata | Network service discovery | `T1046` Network Service Discovery |
-| Linux authentication | SSH password guessing | `T1110.001` Password Guessing |
-| Apache/DVWA | Exploitation of a public-facing application | `T1190` Exploit Public-Facing Application |
-| PowerShell/Sysmon | Encoded PowerShell execution | `T1059.001` PowerShell |
-| Sysmon process creation | LOLBin execution | `T1218` System Binary Proxy Execution |
-| YARA | File-signature match | Evidence-dependent; no automatic technique claim |
-
-Mappings are assigned only when supported by the event evidence. Ordinary network flow records are not presented as IDS detections unless an alert signature or validated correlation analytic exists.
-
-## Validated end-to-end workflow
-
-```text
-Authorized test activity
-        ↓
-Endpoint / web / network telemetry
-        ↓
-Splunk indexing and detection
-        ↓
-Automated Python collection
-        ↓
-Ollama triage and deterministic MITRE mapping
-        ↓
-Analyst investigation and approval
-        ↓
-Simulated response or controlled YARA action
-        ↓
-Audit record and validation report
-```
-
-Validated data sources include:
-
-- `windows`: Security, Sysmon and Defender
-- `linux`: authentication and syslog
-- `web`: Apache access and error logs
-- `suricata`: `eve.json` network telemetry
-- `ai_triage`: AI and YARA events
-
-## Installation
+## Local Setup
 
 ### Prerequisites
 
-- Ubuntu SOC server
-- Python 3.10 or later
+- Ubuntu SOC server or VM
+- Python 3.10+
 - Splunk Enterprise
-- Ollama and a locally available model
-- Windows and/or Linux systems with Splunk Universal Forwarder
-- Suricata and Sysmon for their respective telemetry sources
+- Ollama with a local model
+- Splunk Universal Forwarder on relevant endpoints
+- Suricata and Sysmon where those telemetry sources are used
 
-This repository does not redistribute Splunk, Ollama, Sysmon or Suricata. Install them from their official sources and follow their license terms.
-
-### 1. Clone and create the environment
+### Install
 
 ```bash
 git clone https://github.com/Parakh-Shinde/AI-Augmented-SOC-Triage-Platform.git
 cd AI-Augmented-SOC-Triage-Platform
-
 python3 -m venv .venv
 source .venv/bin/activate
 pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-### 2. Prepare Ollama
-
-Install Ollama, then pull the configured local model. The laboratory build used:
+Prepare the local model:
 
 ```bash
 ollama pull qwen2.5:1.5b
 ollama ps
 ```
 
-Larger models may improve reasoning but require more memory and processing time.
-
-### 3. Configure local settings
-
-Create a local `.env` file. Never commit it.
+Create a local `.env` file and do not commit it:
 
 ```dotenv
 OLLAMA_MODEL=qwen2.5:1.5b
@@ -212,16 +130,13 @@ SPLUNK_USERNAME=your_local_splunk_user
 SPLUNK_PASSWORD=replace_me
 ```
 
-Environment-variable names may differ between versions. Review the configuration references in `app/` and create a redacted `.env.example` for public distribution.
-
-### 4. Validate the Python source
+Validate Python syntax:
 
 ```bash
-source .venv/bin/activate
 python -m py_compile app/*.py
 ```
 
-### 5. Start the dashboard
+Start the dashboard:
 
 ```bash
 python -m streamlit run app/dashboard.py \
@@ -230,29 +145,15 @@ python -m streamlit run app/dashboard.py \
   --server.headless true
 ```
 
-Open:
-
-```text
-http://<SOC_SERVER_IP>:8501
-```
-
-### 6. Run one collection cycle
+Run one collection cycle:
 
 ```bash
 python -m app.splunk_pipeline
 ```
 
-A successful cycle should finish with a summary similar to:
+A healthy run should finish with `failed=0`. Deferred alerts are expected when the lab limits new work to protect local model resources.
 
-```text
-processed=..., duplicates=..., deferred=..., failed=0
-```
-
-`deferred` is not necessarily an error. The lab intentionally limits new alerts per run to prevent Ollama from exhausting system resources.
-
-## Splunk indexes
-
-Create and authorize the indexes required by your deployment:
+## Required Splunk Indexes
 
 ```text
 windows
@@ -263,7 +164,7 @@ ai_triage
 security_alerts
 ```
 
-Verify source freshness with:
+Freshness check:
 
 ```spl
 (index=windows OR index=linux OR index=web OR index=suricata OR index=ai_triage)
@@ -273,125 +174,64 @@ earliest=-30m
 | sort 0 index host
 ```
 
-## Safe validation examples
+## Safe Validation Examples
 
-Run tests only against systems you own or have explicit authorization to assess.
+Run tests only against systems you own or are explicitly authorized to assess.
 
-### Bounded network discovery
+Bounded network discovery:
 
 ```bash
 sudo nmap -sS -sV -T3 --top-ports 20 <LAB_TARGET_IP>
 ```
 
-### Controlled SSH authentication failures
-
-Attempt a small number of incorrect logins manually against the authorized laboratory account. Do not use large password lists.
-
-### Harmless encoded PowerShell marker
+Harmless encoded PowerShell marker:
 
 ```powershell
 $command = 'Write-Output "AI_SOC_ENCODED_TEST"'
-$encoded = [Convert]::ToBase64String(
-    [Text.Encoding]::Unicode.GetBytes($command)
-)
+$encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($command))
 powershell.exe -NoProfile -EncodedCommand $encoded
 ```
 
-## Evidence and reports
+## Security Design Choices
 
-The `docs/` directory is intended to demonstrate evidence-based validation rather than tool-installation screenshots alone.
+- Ollama runs locally; no third-party AI API is required for triage.
+- AI output is treated as assistance, not a trusted decision.
+- MITRE mapping falls back to deterministic logic when model output is incomplete.
+- Sensitive fields can be redacted before storage or display.
+- Containment workflows require analyst approval and create audit records.
+- Pipeline limits and deferred processing protect resource-constrained lab systems.
 
-Recommended evidence set:
+## Limitations
 
-1. Telemetry-source freshness in Splunk
-2. Confirmed Suricata alert with a populated signature
-3. SSH password-guessing detection summary
-4. Full AI-SOC dashboard
-5. Ollama incident triage
-6. MITRE ATT&CK evidence view
-7. Analyst-approved YARA workflow
-8. Automated pipeline health with `failed=0`
-
-Example documentation:
-
-- `docs/reports/TEST-001_Network_Reconnaissance_Validation_Report.md`
-
-## Governance and framework alignment
-
-The project demonstrates practices associated with:
-
-| Framework | Applied area |
-|---|---|
-| ISO/IEC 27001:2022 | Logging, monitoring, incident assessment, response, learning and evidence handling |
-| NIST CSF 2.0 | Identify, Protect, Detect, Respond and Recover/Improve activities |
-| NIST SP 800-61 | Preparation, detection and analysis, containment, recovery and post-incident improvement |
-| MITRE ATT&CK | Evidence-supported adversary-technique mapping |
-
-This alignment is educational and architectural. It does not constitute certification, an external audit or complete compliance with any framework.
-
-## Security and privacy
-
-Before publishing or demonstrating the project:
-
-- Never commit `.env`, passwords, Splunk tokens, HEC tokens or private keys.
-- Do not publish live databases, quarantine contents or unredacted raw logs.
-- Redact usernames, cookies, session identifiers and personal information.
-- Keep real containment disabled during demonstrations unless formally authorized.
-- Treat AI output as analyst assistance, not a trusted security decision.
-- Preserve original evidence and record timestamps for repeatable testing.
-
-Recommended `.gitignore` entries:
-
-```gitignore
-.env
-.env.*
-!.env.example
-.venv/
-venv/
-__pycache__/
-*.py[cod]
-*.db
-*.sqlite
-*.sqlite3
-quarantine/
-logs/
-*.log
-.DS_Store
-Thumbs.db
-```
-
-## Known limitations
-
-- Built for an isolated laboratory, not a production SOC.
-- AI output can be incomplete or incorrect and must be reviewed.
-- Private RFC 1918 addresses cannot be geolocated on a public map.
+- Built for an isolated VMware lab, not a production SOC.
+- AI output may be incomplete or incorrect and must be reviewed.
+- Response actions are simulated or restricted to controlled test files.
+- Detection quality depends on telemetry coverage, field extraction, and rule tuning.
+- Private RFC 1918 addresses cannot be geolocated on public maps.
 - Resource-constrained systems may defer alerts across multiple cycles.
-- Detection quality depends on log coverage, field normalization and rules.
-- Response actions are primarily simulated or restricted to controlled test files.
-- Wazuh is not part of the current core deployment; it is a possible future endpoint-investigation extension.
+- Wazuh is not part of the current core deployment.
 
 ## Roadmap
 
-- [ ] Add automated unit and schema tests
-- [ ] Add GitHub Actions for Python validation and secret scanning
-- [ ] Measure ingestion, detection and triage latency
-- [ ] Expand ATT&CK coverage with evidence-backed tests
-- [ ] Add campaign-level correlation across endpoint, web and network sources
-- [ ] Add optional Wazuh file-integrity and compliance telemetry on a separate VM
-- [ ] Add Zeek network metadata
-- [ ] Publish a short end-to-end demonstration video
+- Add automated unit and schema tests.
+- Add GitHub Actions for Python validation and secret scanning.
+- Measure ingestion, detection, triage, and analyst-review latency.
+- Expand ATT&CK coverage with evidence-backed tests.
+- Add campaign-level correlation across endpoint, web, and network sources.
+- Add optional Wazuh and Zeek integrations in separate lab modules.
 
-## Responsible-use statement
+## Responsible Use
 
-This repository is intended for defensive security education, authorized testing and isolated laboratory use. Do not use its testing procedures against systems without explicit permission. The author does not endorse destructive, disruptive or unauthorized activity.
+This repository is for defensive security education, authorized testing, and isolated laboratory use. Do not use the testing procedures against systems without explicit permission. Never commit `.env`, passwords, tokens, private keys, live databases, quarantine contents, or unredacted logs.
 
 ## Author
 
 **Parakh Shinde**  
-Cybersecurity student focused on SOC operations, detection engineering, incident response, digital forensics and AI-assisted security automation.
+SOC Engineering | Detection Engineering | Incident Response | AI-Assisted Security Automation
 
+- Portfolio: [parakh-shinde.github.io](https://parakh-shinde.github.io/)
 - GitHub: [Parakh-Shinde](https://github.com/Parakh-Shinde)
-- LinkedIn: [parakh-shinde](https://www.linkedin.com/in/parakh-shinde)
+- LinkedIn: [parakh-shinde](https://www.linkedin.com/in/parakh-shinde/)
 
 ## License
 
